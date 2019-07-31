@@ -1,0 +1,18 @@
+[submodule "bench/cmdline"]
+	path = bench/cmdline
+	url = https://github.com/tanakh/cmdline.git
+[submodule "bench/darts-clone"]
+	path = bench/darts-clone
+	url = https://github.com/s-yata/darts-clone.git
+[submodule "bench/xcdat"]
+	path = bench/xcdat
+	url = https://github.com/kampersanda/xcdat.git
+[submodule "bench/tx-trie"]
+	path = bench/tx-trie
+	url = https://github.com/kampersanda/tx-trie.git
+[submodule "bench/marisa-trie"]
+	path = bench/marisa-trie
+	url = https://github.com/s-yata/marisa-trie.git
+[submodule "bench/path_decomposed_tries"]
+	path = bench/path_decomposed_tries
+	url = https://github.com/ot/path_decomposed_tries.git

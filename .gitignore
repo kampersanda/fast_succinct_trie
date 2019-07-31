@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+# My def
+build*/
+.vscode/
+*.sublime-project
+*.sublime-workspace
