@@ -2,8 +2,8 @@
 
 [![experimental](http://badges.github.io/stability-badges/dist/experimental.svg)](http://github.com/badges/stability-badges)
 
-This library implements a string map through Fast Succinct Trie (FST), proposed in [SIGMOD 2018](http://www.cs.cmu.edu/~huanche1/publications/surf_paper.pdf).
-It is implemented by using the original FST implementation [efficient/SuRF](https://github.com/efficient/SuRF).
+This library implements a trie-map through Fast Succinct Trie (FST), proposed in [SIGMOD 2018](http://www.cs.cmu.edu/~huanche1/publications/surf_paper.pdf).
+The trie-map is implemented by using the original FST implementation [efficient/SuRF](https://github.com/efficient/SuRF). But, unique suffixes are managed in character arrays as MP-trie (c.f. [KAIS 2017](https://drive.google.com/open?id=1_BknOv1misIK-iUk4u9c9yZi3qmWNruf)).
 
 ## Build instructions
 
