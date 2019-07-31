@@ -27,7 +27,9 @@ class Trie {
     level_t getHeight() const;
     level_t getSparseStartLevel() const;
 
-    position_t getNumKeys() const;
+    uint64_t getNumKeys() const;
+    uint64_t getNumNodes() const;
+    uint64_t getSuffixBytes() const;
 
     void save(std::ostream& os) const;
     void load(std::istream& is);
@@ -202,8 +204,15 @@ level_t Trie::getSparseStartLevel() const {
     return louds_sparse_->getStartLevel();
 }
 
-position_t Trie::getNumKeys() const {
+uint64_t Trie::getNumKeys() const {
     return num_keys_;
+}
+
+uint64_t Trie::getNumNodes() const {
+    return louds_dense_->getNumNodes() + louds_sparse_->getNumNodes();
+}
+uint64_t Trie::getSuffixBytes() const {
+    return suffixes_.size();
 }
 
 void Trie::save(std::ostream& os) const {
@@ -238,7 +247,7 @@ void Trie::debugPrint(std::ostream& os) const {
         char c = suffixes_[i];
         os << (c ? c : '?') << " ";
     }
-    os << "\n-----------------\n";
+    os << std::endl;
 }
 
 std::pair<position_t, level_t> Trie::traverse(const std::string& key) const {

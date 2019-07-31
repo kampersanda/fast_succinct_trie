@@ -26,8 +26,13 @@ class LoudsDense {
       public:
         Iter() : is_valid_(false){};
         Iter(LoudsDense* trie)
-            : is_valid_(false), is_search_complete_(false), is_move_left_complete_(false),
-              is_move_right_complete_(false), trie_(trie), send_out_node_num_(0), key_len_(0),
+            : is_valid_(false),
+              is_search_complete_(false),
+              is_move_left_complete_(false),
+              is_move_right_complete_(false),
+              trie_(trie),
+              send_out_node_num_(0),
+              key_len_(0),
               is_at_prefix_key_(false) {
             for (level_t level = 0; level < trie_->getHeight(); level++) {
                 key_.push_back(0);
@@ -198,7 +203,7 @@ class LoudsDense {
             for (position_t j = i; j < i + kNodeFanout; ++j) {
                 if (label_bitmaps_->readBit(j)) {
                     label_t c = label_t(j % kNodeFanout);
-                    os << char(c ? c : '?') << " ";
+                    os << char(c != kTerminator ? c : '?') << " ";
                     P.push_back(j);
                 }
             }
@@ -241,6 +246,15 @@ class LoudsDense {
         prefixkey_indicator_bits_->load(is);
         suffixes_ = std::make_unique<BitvectorSuffix>();
         suffixes_->load(is);
+    }
+    uint64_t getNumNodes() const {
+        uint64_t num = 0;
+        for (position_t i = 0; i < label_bitmaps_->numBits(); i += kNodeFanout) {
+            for (position_t j = i; j < i + kNodeFanout; ++j) {
+                if (label_bitmaps_->readBit(j)) ++num;
+            }
+        }
+        return num;
     }
 
   private:

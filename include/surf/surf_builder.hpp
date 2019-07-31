@@ -22,8 +22,12 @@ class SuRFBuilder {
     SuRFBuilder() : sparse_start_level_(0), suffix_type_(kNone){};
     explicit SuRFBuilder(bool include_dense, uint32_t sparse_dense_ratio, SuffixType suffix_type,
                          level_t hash_suffix_len, level_t real_suffix_len)
-        : include_dense_(include_dense), sparse_dense_ratio_(sparse_dense_ratio), sparse_start_level_(0),
-          suffix_type_(suffix_type), hash_suffix_len_(hash_suffix_len), real_suffix_len_(real_suffix_len){};
+        : include_dense_(include_dense),
+          sparse_dense_ratio_(sparse_dense_ratio),
+          sparse_start_level_(0),
+          suffix_type_(suffix_type),
+          hash_suffix_len_(hash_suffix_len),
+          real_suffix_len_(real_suffix_len){};
 
     ~SuRFBuilder(){};
 

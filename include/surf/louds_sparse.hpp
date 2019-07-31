@@ -183,7 +183,7 @@ class LoudsSparse {
         os << "LABEL: ";
         for (position_t i = 0; i < labels_->getNumBytes(); ++i) {
             label_t c = labels_->read(i);
-            os << char(c ? c : '?') << " ";
+            os << char(c != kTerminator ? c : '?') << " ";
         }
         os << '\n';
         os << "CHILD: ";
@@ -222,6 +222,9 @@ class LoudsSparse {
         louds_bits_->load(is);
         suffixes_ = std::make_unique<BitvectorSuffix>();
         suffixes_->load(is);
+    }
+    uint64_t getNumNodes() const {
+        return louds_bits_->numBits();
     }
 
   private:

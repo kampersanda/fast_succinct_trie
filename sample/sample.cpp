@@ -21,8 +21,13 @@ int main() {
 
     std::cout << "[statistics]" << std::endl;
     std::cout << " - number of keys: " << trie.getNumKeys() << std::endl;
-    std::cout << " - memory usage: " << trie.getMemoryUsage() << " bytes" << std::endl;
-    std::cout << " - output file size: " << trie.getSizeIO() << " bytes" << std::endl;
+    std::cout << " - number of nodes: " << trie.getNumNodes() << std::endl;
+    std::cout << " - number of suffix bytes: " << trie.getSuffixBytes() << std::endl;
+    std::cout << " - memory usage in bytes: " << trie.getMemoryUsage() << std::endl;
+    std::cout << " - output file size in bytes: " << trie.getSizeIO() << std::endl;
+
+    std::cout << "[configure]" << std::endl;
+    trie.debugPrint(std::cout);
 
     // write the trie-index to a file
     {
@@ -32,9 +37,9 @@ int main() {
 
     // read the trie-index from a file
     {
-        fst::Trie trie;
+        fst::Trie other;
         std::ifstream ifs("fst.idx");
-        trie.load(ifs);
+        other.load(ifs);
     }
 
     std::remove("fst.idx");

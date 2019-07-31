@@ -46,8 +46,13 @@ int main() {
 
     std::cout << "[statistics]" << std::endl;
     std::cout << " - number of keys: " << trie.getNumKeys() << std::endl;
-    std::cout << " - memory usage: " << trie.getMemoryUsage() << " bytes" << std::endl;
-    std::cout << " - output file size: " << trie.getSizeIO() << " bytes" << std::endl;
+    std::cout << " - number of nodes: " << trie.getNumNodes() << std::endl;
+    std::cout << " - number of suffix bytes: " << trie.getSuffixBytes() << std::endl;
+    std::cout << " - memory usage in bytes: " << trie.getMemoryUsage() << std::endl;
+    std::cout << " - output file size in bytes: " << trie.getSizeIO() << std::endl;
+
+    std::cout << "[configure]" << std::endl;
+    trie.debugPrint(std::cout);
 
     // write the trie-index to a file
     {
@@ -57,9 +62,9 @@ int main() {
 
     // read the trie-index from a file
     {
-        fst::Trie trie;
+        fst::Trie other;
         std::ifstream ifs("fst.idx");
-        trie.load(ifs);
+        other.load(ifs);
     }
 
     std::remove("fst.idx");
@@ -83,8 +88,22 @@ The output will be
  - SIGMOD: 10
 [statistics]
  - number of keys: 11
- - memory usage: 607 bytes
- - output file size: 336 bytes
+ - number of nodes: 19
+ - number of suffix bytes: 24
+ - memory usage in bytes: 607
+ - output file size in bytes: 336
+[configure]
+-- LoudsDense (heigth=1) --
+LABEL: A D I P S | 
+CHILD: 1 1 1 0 1 | 
+PREFX: 0         |
+-- LoudsSparse --
+LABEL: C I S C D I ? A D M G I K M ? 
+CHILD: 0 0 1 1 0 1 0 0 0 0 1 0 0 0 
+LOUDS: 1 0 1 1 1 0 1 0 1 0 1 1 0 0 
+-- Suffixes --
+POINTERS: 17 11 1 9 0 22 9 12 7 19 14 
+SUFFIXES: ? S T A T S ? R ? M ? M L ? O D ? A K D D ? A ? 
 ```
 
 ## Licensing
