@@ -30,6 +30,8 @@ template <class T>
 bool find(T*, const std::string&);
 template <class T>
 uint64_t get_memory(T*);
+template <class T>
+void show_stats(T*, std::ostream&);
 
 #ifdef USE_FST
 #include <fst.hpp>
@@ -46,6 +48,13 @@ bool find(trie_t* trie, const std::string& query) {
 template <>
 uint64_t get_memory(trie_t* trie) {
     return trie->getSizeIO();
+}
+template <>
+void show_stats(trie_t* trie, std::ostream& os) {
+    os << "- statistics: "  //
+       << trie->getNumNodes() << " nodes; "  //
+       << trie->getSuffixBytes() << " suffix bytes"  //
+       << std::endl;
 }
 #endif
 
@@ -71,6 +80,13 @@ bool find(trie_t* trie, const std::string& query) {
 template <>
 uint64_t get_memory(trie_t* trie) {
     return trie->total_size();
+}
+template <>
+void show_stats(trie_t* trie, std::ostream& os) {
+    os << "- statistics: "  //
+       << trie->size() << " nodes; "  //
+       << trie->nonzero_size() << " nonzero nodes"  //
+       << std::endl;
 }
 #endif
 
@@ -98,6 +114,8 @@ uint64_t get_memory(trie_t*) {
     std::ifstream is(TX_INDEX, std::ios::binary | std::ios::ate);
     return uint64_t(is.tellg());
 }
+template <>
+void show_stats(trie_t* trie, std::ostream& os) {}
 #endif
 
 #ifdef USE_MARISA
@@ -123,6 +141,8 @@ template <>
 uint64_t get_memory(trie_t* trie) {
     return trie->io_size();
 }
+template <>
+void show_stats(trie_t* trie, std::ostream& os) {}
 #endif
 
 #ifdef USE_XCDAT
@@ -145,6 +165,8 @@ template <>
 uint64_t get_memory(trie_t* trie) {
     return trie->size_in_bytes();
 }
+template <>
+void show_stats(trie_t* trie, std::ostream& os) {}
 #endif
 
 #ifdef USE_PDT
@@ -165,6 +187,8 @@ template <>
 uint64_t get_memory(trie_t* trie) {
     return succinct::mapper::size_of(*trie);
 }
+template <>
+void show_stats(trie_t* trie, std::ostream& os) {}
 #endif
 
 template <class T>
@@ -210,6 +234,8 @@ void main_template(std::vector<std::string>& keys, std::vector<std::string>& que
 
     const size_t mem = get_memory(trie.get());
     std::cout << "- memory usage: " << mem << " bytes; " << mem / (1024.0 * 1024.0) << " MiB" << std::endl;
+
+    show_stats(trie.get(), std::cout);
 }
 
 int main(int argc, char* argv[]) {
