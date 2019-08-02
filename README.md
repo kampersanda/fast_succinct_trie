@@ -2,8 +2,21 @@
 
 [![experimental](http://badges.github.io/stability-badges/dist/experimental.svg)](http://github.com/badges/stability-badges)
 
-This library implements a trie-map through Fast Succinct Trie (FST), proposed in [SIGMOD 2018](http://www.cs.cmu.edu/~huanche1/publications/surf_paper.pdf).
-The trie-map is implemented by using the original FST implementation [efficient/SuRF](https://github.com/efficient/SuRF). But, unique suffixes are managed in character arrays as MP-trie (c.f. [KAIS 2017](https://drive.google.com/open?id=1_BknOv1misIK-iUk4u9c9yZi3qmWNruf)).
+This library provides a trie-map through Fast Succinct Trie (FST), proposed in [SIGMOD 2018](http://www.cs.cmu.edu/~huanche1/publications/surf_paper.pdf).
+The library is implemented by modifying the original FST implementation [efficient/SuRF](https://github.com/efficient/SuRF) and applying a compact minimal-prefix trie form to simulate a trie-based string map (c.f. Section 2.2 of [KAIS 2017](https://drive.google.com/open?id=1_BknOv1misIK-iUk4u9c9yZi3qmWNruf)).
+
+## What is FST?
+
+FST is a succinct trie data structure proposed in the paper,
+
+> Zhang, Lim, Leis, Andersen, Kaminsky, Keeton and Pavlo: **SuRF: Practical Range Query Filtering with Fast Succinct Trie,** In *SIGMOD 2018*, pp. 323-336.
+
+Briefly, FST is a practical variant of [LOUDS-trie](https://bitbucket.org/vsmirnov/memoria/wiki/LabeledTree). FST uses two LOUDS implementations: one is fast and the other is space-efficient. FST partitions a trie into two layers at a level and applies the fast one to the top layer and the space-efficient one to the bottom layer.
+
+More specific explanations can be found in the [slide](http://www.cs.cmu.edu/~huanche1/slides/FST.pdf) of the author.
+
+Since FST was developed for succinct range query filtering, the original implementation [efficient/SuRF](https://github.com/efficient/SuRF) allows to include false positives in the solutions.
+This library `fast_succinct_trie` modifies it and provides a string map based on FST.
 
 ## Build instructions
 
@@ -105,6 +118,11 @@ LOUDS: 1 0 1 1 1 0 1 0 1 0 1 1 0 0
 POINTERS: 17 11 1 9 0 22 9 12 7 19 14 
 SUFFIXES: ? S T A T S ? R ? M ? M L ? O D ? A K D D ? A ? 
 ```
+
+## Todo
+
+- Support more operations
+- Implement a normal trie form also
 
 ## Licensing
 
