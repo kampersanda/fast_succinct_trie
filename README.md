@@ -18,6 +18,10 @@ More specific explanations can be found in the [slide](http://www.cs.cmu.edu/~hu
 Since FST was developed for succinct range query filtering, the original implementation [efficient/SuRF](https://github.com/efficient/SuRF) allows to include false positives in the solutions.
 The library [kampersanda/fast\_succinct\_trie](https://github.com/kampersanda/fast_succinct_trie) modifies it and provides a string map based on FST.
 
+## Install
+
+This library consists of only header files. Please through the path to the directory [`include`](https://github.com/kampersanda/fast_succinct_trie/tree/master/include).
+
 ## Build instructions
 
 You can download and compile this library as the following commands:
