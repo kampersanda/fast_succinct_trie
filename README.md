@@ -107,8 +107,8 @@ The output will be
  - number of keys: 11
  - number of nodes: 19
  - number of suffix bytes: 24
- - memory usage in bytes: 607
- - output file size in bytes: 336
+ - memory usage in bytes: 587
+ - output file size in bytes: 312
 [configure]
 -- LoudsDense (heigth=1) --
 LABEL: A D I P S | 
@@ -120,7 +120,7 @@ CHILD: 0 0 1 1 0 1 0 0 0 0 1 0 0 0
 LOUDS: 1 0 1 1 1 0 1 0 1 0 1 1 0 0 
 -- Suffixes --
 POINTERS: 17 11 1 9 0 22 9 12 7 19 14 
-SUFFIXES: ? S T A T S ? R ? M ? M L ? O D ? A K D D ? A ? 
+SUFFIXES: ? S T A T S ? R ? M ? M L ? O D ? A K D D ? A ?  
 ```
 
 ## Todo

@@ -4,13 +4,60 @@
 #include "surf/louds_sparse.hpp"
 #include "surf/surf_builder.hpp"
 
-#include "compact_array.hpp"
-
 namespace fst {
 
 using position_t = surf::position_t;
 using level_t = surf::level_t;
 using surf::kNotFound;
+
+namespace detail {
+
+class CompactArray {
+  public:
+    CompactArray() = default;
+    CompactArray(const std::vector<uint32_t>& input, const uint32_t bits);
+
+    ~CompactArray() = default;
+
+    uint32_t operator[](uint32_t i) const;
+
+    uint32_t getSize() const;
+    uint64_t getSizeIO() const;
+    uint64_t getMemoryUsage() const;
+
+    void save(std::ostream& os) const;
+    void load(std::istream& is);
+
+  private:
+    uint32_t size_ = 0;
+    uint32_t mask_ = 0;
+    uint32_t bits_ = 0;
+    std::vector<uint32_t> chunks_;
+};
+
+template <class T>
+static void saveVec(std::ostream& os, const std::vector<T>& vec) {
+    size_t n = vec.size();
+    surf::saveValue(os, n);
+    os.write(reinterpret_cast<const char*>(vec.data()), sizeof(T) * n);
+}
+template <class T>
+static void loadVec(std::istream& is, std::vector<T>& vec) {
+    size_t n = 0;
+    surf::loadValue(is, n);
+    vec.resize(n);
+    is.read(reinterpret_cast<char*>(vec.data()), sizeof(T) * n);
+}
+template <class T>
+static uint64_t getVecSizeIO(const std::vector<T>& vec) {
+    return sizeof(size_t) + sizeof(T) * vec.size();
+}
+template <class T>
+static uint64_t getVecMemoryUsage(const std::vector<T>& vec) {
+    return sizeof(T) * vec.size();
+}
+
+}  // namespace detail
 
 class Trie {
   public:
@@ -40,32 +87,10 @@ class Trie {
   private:
     std::pair<position_t, level_t> traverse(const std::string& key) const;
 
-    template <class T>
-    static void saveVec(std::ostream& os, const std::vector<T>& vec) {
-        size_t n = vec.size();
-        surf::saveValue(os, n);
-        os.write(reinterpret_cast<const char*>(vec.data()), sizeof(T) * n);
-    }
-    template <class T>
-    static void loadVec(std::istream& is, std::vector<T>& vec) {
-        size_t n = 0;
-        surf::loadValue(is, n);
-        vec.resize(n);
-        is.read(reinterpret_cast<char*>(vec.data()), sizeof(T) * n);
-    }
-    template <class T>
-    static uint64_t getVecSizeIO(const std::vector<T>& vec) {
-        return sizeof(size_t) + sizeof(T) * vec.size();
-    }
-    template <class T>
-    static uint64_t getVecMemoryUsage(const std::vector<T>& vec) {
-        return sizeof(T) * vec.size();
-    }
-
   private:
     std::unique_ptr<surf::LoudsDense> louds_dense_;
     std::unique_ptr<surf::LoudsSparse> louds_sparse_;
-    CompactArray suffix_ptrs_;
+    detail::CompactArray suffix_ptrs_;
     std::vector<char> suffixes_;  // unified
     position_t num_keys_ = 0;
 };
@@ -169,7 +194,7 @@ Trie::Trie(const std::vector<std::string>& keys, const bool include_dense, const
         max_ptr >>= 1;
     } while (max_ptr != 0);
 
-    suffix_ptrs_ = CompactArray(suffix_ptrs, suf_bits);
+    suffix_ptrs_ = detail::CompactArray(suffix_ptrs, suf_bits);
     suffixes_.shrink_to_fit();
 }
 
@@ -197,12 +222,12 @@ position_t Trie::exactSearch(const std::string& key) const {
 
 uint64_t Trie::getSizeIO() const {
     return louds_dense_->serializedSize() + louds_sparse_->serializedSize() + suffix_ptrs_.getSizeIO() +
-           getVecSizeIO(suffixes_) + sizeof(num_keys_);
+           detail::getVecSizeIO(suffixes_) + sizeof(num_keys_);
 }
 
 uint64_t Trie::getMemoryUsage() const {
     return sizeof(Trie) + louds_dense_->getMemoryUsage() + louds_sparse_->getMemoryUsage() +
-           suffix_ptrs_.getMemoryUsage() + getVecMemoryUsage(suffixes_);
+           suffix_ptrs_.getMemoryUsage() + detail::getVecMemoryUsage(suffixes_);
 }
 
 level_t Trie::getHeight() const {
@@ -228,7 +253,7 @@ void Trie::save(std::ostream& os) const {
     louds_dense_->save(os);
     louds_sparse_->save(os);
     suffix_ptrs_.save(os);
-    saveVec(os, suffixes_);
+    detail::saveVec(os, suffixes_);
     surf::saveValue(os, num_keys_);
 }
 
@@ -238,7 +263,7 @@ void Trie::load(std::istream& is) {
     louds_sparse_ = std::make_unique<surf::LoudsSparse>();
     louds_sparse_->load(is);
     suffix_ptrs_.load(is);
-    loadVec(is, suffixes_);
+    detail::loadVec(is, suffixes_);
     surf::loadValue(is, num_keys_);
 }
 
@@ -270,5 +295,62 @@ std::pair<position_t, level_t> Trie::traverse(const std::string& key) const {
     }
     return ret;
 }
+
+namespace detail {
+
+CompactArray::CompactArray(const std::vector<uint32_t>& input, const uint32_t bits)
+    : size_(static_cast<uint32_t>(input.size())),
+      mask_((1U << bits) - 1),
+      bits_(bits),
+      chunks_(size_ * bits_ / 32 + 1) {
+    for (uint32_t i = 0; i < size_; ++i) {
+        const uint32_t quo = i * bits_ / 32;
+        const uint32_t mod = i * bits_ % 32;
+        chunks_[quo] &= ~(mask_ << mod);
+        chunks_[quo] |= (input[i] & mask_) << mod;
+        if (32 < mod + bits_) {
+            chunks_[quo + 1] &= ~(mask_ >> (32 - mod));
+            chunks_[quo + 1] |= (input[i] & mask_) >> (32 - mod);
+        }
+    }
+}
+
+uint32_t CompactArray::operator[](uint32_t i) const {
+    const uint32_t quo = i * bits_ / 32;
+    const uint32_t mod = i * bits_ % 32;
+    if (mod + bits_ <= 32) {
+        return (chunks_[quo] >> mod) & mask_;
+    } else {
+        return ((chunks_[quo] >> mod) | (chunks_[quo + 1] << (32 - mod))) & mask_;
+    }
+}
+
+uint32_t CompactArray::getSize() const {
+    return size_;
+}
+
+uint64_t CompactArray::getSizeIO() const {
+    return (sizeof(uint32_t) * 3) + detail::getVecSizeIO(chunks_);
+}
+
+uint64_t CompactArray::getMemoryUsage() const {
+    return detail::getVecMemoryUsage(chunks_);
+}
+
+void CompactArray::save(std::ostream& os) const {
+    surf::saveValue(os, size_);
+    surf::saveValue(os, mask_);
+    surf::saveValue(os, bits_);
+    detail::saveVec(os, chunks_);
+}
+
+void CompactArray::load(std::istream& is) {
+    surf::loadValue(is, size_);
+    surf::loadValue(is, mask_);
+    surf::loadValue(is, bits_);
+    detail::loadVec(is, chunks_);
+}
+
+}  // namespace detail
 
 }  // namespace fst
