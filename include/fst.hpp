@@ -1,9 +1,10 @@
 #pragma once
 
-#include "surf/config.hpp"
 #include "surf/louds_dense.hpp"
 #include "surf/louds_sparse.hpp"
 #include "surf/surf_builder.hpp"
+
+#include "compact_array.hpp"
 
 namespace fst {
 
@@ -64,7 +65,7 @@ class Trie {
   private:
     std::unique_ptr<surf::LoudsDense> louds_dense_;
     std::unique_ptr<surf::LoudsSparse> louds_sparse_;
-    std::vector<position_t> suffix_ptrs_;
+    CompactArray suffix_ptrs_;
     std::vector<char> suffixes_;  // unified
     position_t num_keys_ = 0;
 };
@@ -131,7 +132,7 @@ Trie::Trie(const std::vector<std::string>& keys, const bool include_dense, const
         return std::lexicographical_compare(x.rbegin(), x.rend(), y.rbegin(), y.rend());
     });
 
-    suffix_ptrs_.resize(num_keys_);
+    std::vector<uint32_t> suffix_ptrs(num_keys_);
     suffixes_.emplace_back('\0');  // for empty suffix
 
     suffix_t prev_suffix = {{nullptr, 0}, kNotFound};
@@ -139,7 +140,7 @@ Trie::Trie(const std::vector<std::string>& keys, const bool include_dense, const
     for (size_t i = 0; i < num_keys_; ++i) {
         const suffix_t& curr_suffix = suffixes_builder[num_keys_ - i - 1];
         if (curr_suffix.length() == 0) {
-            suffix_ptrs_[curr_suffix.key_id] = 0;
+            suffix_ptrs[curr_suffix.key_id] = 0;
             continue;
         }
 
@@ -150,10 +151,10 @@ Trie::Trie(const std::vector<std::string>& keys, const bool include_dense, const
         }
 
         if ((match == curr_suffix.length()) && (prev_suffix.length() != 0)) {  // share
-            suffix_ptrs_[curr_suffix.key_id] =
-                static_cast<position_t>(suffix_ptrs_[prev_suffix.key_id] + (prev_suffix.length() - match));
+            suffix_ptrs[curr_suffix.key_id] =
+                static_cast<position_t>(suffix_ptrs[prev_suffix.key_id] + (prev_suffix.length() - match));
         } else {  // append
-            suffix_ptrs_[curr_suffix.key_id] = static_cast<position_t>(suffixes_.size());
+            suffix_ptrs[curr_suffix.key_id] = static_cast<position_t>(suffixes_.size());
             std::copy(curr_suffix.begin(), curr_suffix.end(), std::back_inserter(suffixes_));
             suffixes_.emplace_back('\0');
         }
@@ -161,6 +162,14 @@ Trie::Trie(const std::vector<std::string>& keys, const bool include_dense, const
         prev_suffix = curr_suffix;
     }
 
+    uint32_t suf_bits = 0;
+    uint32_t max_ptr = static_cast<uint32_t>(suffixes_.size());
+    do {
+        suf_bits += 1;
+        max_ptr >>= 1;
+    } while (max_ptr != 0);
+
+    suffix_ptrs_ = CompactArray(suffix_ptrs, suf_bits);
     suffixes_.shrink_to_fit();
 }
 
@@ -187,13 +196,13 @@ position_t Trie::exactSearch(const std::string& key) const {
 }
 
 uint64_t Trie::getSizeIO() const {
-    return louds_dense_->serializedSize() + louds_sparse_->serializedSize() + getVecSizeIO(suffix_ptrs_) +
+    return louds_dense_->serializedSize() + louds_sparse_->serializedSize() + suffix_ptrs_.getSizeIO() +
            getVecSizeIO(suffixes_) + sizeof(num_keys_);
 }
 
 uint64_t Trie::getMemoryUsage() const {
     return sizeof(Trie) + louds_dense_->getMemoryUsage() + louds_sparse_->getMemoryUsage() +
-           getVecMemoryUsage(suffix_ptrs_) + getVecMemoryUsage(suffixes_);
+           suffix_ptrs_.getMemoryUsage() + getVecMemoryUsage(suffixes_);
 }
 
 level_t Trie::getHeight() const {
@@ -218,7 +227,7 @@ uint64_t Trie::getSuffixBytes() const {
 void Trie::save(std::ostream& os) const {
     louds_dense_->save(os);
     louds_sparse_->save(os);
-    saveVec(os, suffix_ptrs_);
+    suffix_ptrs_.save(os);
     saveVec(os, suffixes_);
     surf::saveValue(os, num_keys_);
 }
@@ -228,7 +237,7 @@ void Trie::load(std::istream& is) {
     louds_dense_->load(is);
     louds_sparse_ = std::make_unique<surf::LoudsSparse>();
     louds_sparse_->load(is);
-    loadVec(is, suffix_ptrs_);
+    suffix_ptrs_.load(is);
     loadVec(is, suffixes_);
     surf::loadValue(is, num_keys_);
 }
@@ -238,7 +247,7 @@ void Trie::debugPrint(std::ostream& os) const {
     louds_sparse_->debugPrint(os);
     os << "-- Suffixes --" << std::endl;
     os << "POINTERS: ";
-    for (size_t i = 0; i < suffix_ptrs_.size(); ++i) {
+    for (uint32_t i = 0; i < suffix_ptrs_.getSize(); ++i) {
         os << suffix_ptrs_[i] << " ";
     }
     os << '\n';

@@ -36,9 +36,10 @@ void show_stats(T*, std::ostream&);
 #ifdef USE_FST
 #include <fst.hpp>
 using trie_t = fst::Trie;
+static const uint32_t SPARSE_DENSE_RATIO = 16;
 template <>
 std::unique_ptr<trie_t> build(std::vector<std::string>& keys) {
-    auto trie = std::make_unique<trie_t>(keys);
+    auto trie = std::make_unique<trie_t>(keys, true, SPARSE_DENSE_RATIO);
     return trie;
 }
 template <>
@@ -53,7 +54,9 @@ template <>
 void show_stats(trie_t* trie, std::ostream& os) {
     os << "- statistics: "  //
        << trie->getNumNodes() << " nodes; "  //
-       << trie->getSuffixBytes() << " suffix bytes"  //
+       << trie->getSuffixBytes() << " suffix bytes; "  //
+       << trie->getSparseStartLevel() << " dense height; "  //
+       << trie->getHeight() << " height; "  //
        << std::endl;
 }
 #endif
