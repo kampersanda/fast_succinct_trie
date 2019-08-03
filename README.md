@@ -16,7 +16,7 @@ Briefly, FST is a practical variant of [LOUDS-trie](https://bitbucket.org/vsmirn
 More specific explanations can be found in the [slide](http://www.cs.cmu.edu/~huanche1/slides/FST.pdf) of the author.
 
 Since FST was developed for succinct range query filtering, the original implementation [efficient/SuRF](https://github.com/efficient/SuRF) allows to include false positives in the solutions.
-This library [kampersanda/fast\_succinct\_trie](https://github.com/kampersanda/fast_succinct_trie) modifies it and provides a string map based on FST.
+The library [kampersanda/fast\_succinct\_trie](https://github.com/kampersanda/fast_succinct_trie) modifies it and provides a string map based on FST.
 
 ## Build instructions
 
@@ -31,7 +31,7 @@ $ make
 ```
 
 Compiling third-party libraries at `bench` will be heavy.
-If you do not need to run benchmarks, please put `-DFST_ENABLE_BENCH=OFF`.
+Please set `-DFST_ENABLE_BENCH=OFF` if you do not need to run benchmarks.
 
 ## Sample usage
 
