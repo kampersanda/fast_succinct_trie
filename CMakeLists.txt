@@ -17,11 +17,4 @@ message(STATUS "CXX_FLAGS_DEBUG are ${CMAKE_CXX_FLAGS_DEBUG}")
 message(STATUS "CXX_FLAGS_RELEASE are ${CMAKE_CXX_FLAGS_RELEASE}")
 
 include_directories(include)
-
 add_subdirectory(sample)
-
-option(FST_ENABLE_BENCH "Enable to compile bench." OFF)
-
-if (FST_ENABLE_BENCH)
-    add_subdirectory(bench)
-endif ()
