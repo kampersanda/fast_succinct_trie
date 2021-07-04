@@ -29,7 +29,6 @@ std::vector<std::string> load_strings(const std::string& filepath, bool to_uniqu
     }
     return strings;
 }
-
 std::vector<std::string> sample_strings(const std::vector<std::string>& strings, std::uint64_t num_samples,
                                         std::uint64_t random_seed) {
     std::mt19937_64 engine(random_seed);
@@ -44,13 +43,10 @@ std::vector<std::string> sample_strings(const std::vector<std::string>& strings,
 
 template <class T>
 std::unique_ptr<T> build(std::vector<std::string>&);
-
 template <class T>
 uint64_t lookup(T*, const std::string&);
-
 template <class T>
 uint64_t decode(T*, uint64_t);
-
 template <class T>
 uint64_t get_memory(T*);
 

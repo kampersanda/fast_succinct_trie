@@ -1,32 +1,28 @@
 #!/usr/bin/env python3
 
-import matplotlib
-import matplotlib.pyplot as plt
 import json
 from argparse import ArgumentParser
 
-plt.style.use('ggplot')
-
 MiB = 1024*1024
-CNAMES = matplotlib.colors.cnames
+
 PROPS = {
-    'XCDAT_8': {'label': 'xcdat<8>', 'marker': '^', 'ls': 'None', 'color': CNAMES['red']},
-    'XCDAT_16': {'label': 'xcdat<16>', 'marker': '^', 'ls': 'None', 'color': CNAMES['red'], 'mfc': 'None'},
-    'XCDAT_7': {'label': 'xcdat<7>', 'marker': 'v', 'ls': 'None', 'color': CNAMES['red']},
-    'XCDAT_15': {'label': 'xcdat<15>', 'marker': 'v', 'ls': 'None', 'color': CNAMES['red'], 'mfc': 'None'},
+    'XCDAT_8': {'label': 'xcdat<8>'},
+    'XCDAT_16': {'label': 'xcdat<16>'},
+    'XCDAT_7': {'label': 'xcdat<7>'},
+    'XCDAT_15': {'label': 'xcdat<15>'},
 
-    'DARTS': {'label': 'darts', 'marker': 's', 'ls': 'None', 'color': CNAMES['deepskyblue']},
-    'DARTSC': {'label': 'darts-clone', 'marker': 's', 'ls': 'None', 'color': CNAMES['deepskyblue'], 'mfc': 'None'},
-    'CEDAR': {'label': 'cedar', 'marker': 'o', 'ls': 'None', 'color': CNAMES['blue']},
-    'CEDARPP': {'label': 'cedarpp', 'marker': 'o', 'ls': 'None', 'color': CNAMES['blue'], 'mfc': 'None'},
-    'DASTRIE': {'label': 'dastrie', 'marker': '*', 'ls': 'None', 'color': CNAMES['darkorange']},
+    'DARTS': {'label': 'darts'},
+    'DARTSC': {'label': 'darts-clone'},
+    'CEDAR': {'label': 'cedar'},
+    'CEDARPP': {'label': 'cedarpp'},
+    'DASTRIE': {'label': 'dastrie'},
 
-    'TX': {'label': 'tx', 'marker': 'p', 'ls': 'None', 'color': CNAMES['green']},
-    'FST': {'label': 'fst', 'marker': 'p', 'ls': 'None', 'color': CNAMES['green'], 'mfc': 'None'},
-    'MARISA': {'label': 'marisa', 'marker': 'D', 'ls': 'None', 'color': CNAMES['yellow']},
-    'PDT': {'label': 'pdt', 'marker': 'x', 'ls': 'None', 'color': CNAMES['purple'], 'mfc': 'None'},
+    'TX': {'label': 'tx'},
+    'FST': {'label': 'fst'},
+    'MARISA': {'label': 'marisa'},
+    'PDT': {'label': 'pdt'},
 
-    'HATTRIE': {'label': 'hat-trie', 'marker': '+', 'ls': 'None', 'color': CNAMES['dimgrey'], 'mfc': 'None'},
+    'HATTRIE': {'label': 'hat-trie'},
 }
 
 
@@ -114,13 +110,24 @@ def plot_decode_vs_memory(logs_dict, title):
 def main():
     parser = ArgumentParser()
     parser.add_argument('input_path')
-    parser.add_argument('title')
     args = parser.parse_args()
 
     logs_dict = load_logs(args.input_path)
-    plot_lookup_vs_memory(logs_dict, args.title)
-    plot_decode_vs_memory(logs_dict, args.title)
-    plot_constr_vs_memory(logs_dict, args.title)
+
+    for name, prop in PROPS.items():
+        if not name in logs_dict:
+            continue
+        log_dict = logs_dict[name]
+
+        label = prop['label']
+        memory = int(log_dict['memory_in_bytes']) / MiB
+        constr = float(log_dict['construction_sec'])
+        lookup = float(log_dict['lookup_us_per_query'])
+        if 'decode_us_per_query' in log_dict:
+            decode = float(log_dict['decode_us_per_query'])
+        else:
+            decode = 0.0
+        print(label, memory, constr, lookup, decode, sep='\t')
 
 
 if __name__ == "__main__":
