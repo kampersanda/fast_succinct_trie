@@ -1,6 +1,5 @@
-cmake_minimum_required(VERSION 2.8)
-
-project(fast_succinct_trie)
+cmake_minimum_required(VERSION 3.0)
+project(fast_succinct_trie VERSION 0.1.0 LANGUAGES CXX)
 
 if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
