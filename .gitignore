@@ -36,3 +36,4 @@ build*/
 .vscode/
 *.sublime-project
 *.sublime-workspace
+log-*

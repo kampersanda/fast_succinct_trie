@@ -421,7 +421,7 @@ cmd_line_parser::parser make_parser(int argc, char** argv) {
     p.add("input_keys", "Input filepath of keywords");
     p.add("num_samples", "Number of sample keys for searches (default=100000)", "-n", false);
     p.add("random_seed", "Random seed for sampling (default=13)", "-s", false);
-    p.add("to_unique", "Unique strings? (default=true)", "-u", false);
+    p.add("to_unique", "Unique strings? (default=false)", "-u", false);
     return p;
 }
 
@@ -439,7 +439,7 @@ int main(int argc, char* argv[]) {
     const auto input_keys = p.get<std::string>("input_keys");
     const auto num_samples = p.get<std::uint64_t>("num_samples", 100000);
     const auto random_seed = p.get<std::uint64_t>("random_seed", 13);
-    const auto to_unique = p.get<bool>("to_unique", true);
+    const auto to_unique = p.get<bool>("to_unique", false);
 
     auto keys = load_strings(input_keys, to_unique);
     auto queries = sample_strings(keys, num_samples, random_seed);
