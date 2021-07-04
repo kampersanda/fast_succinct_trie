@@ -11,6 +11,9 @@ set_target_properties(bench_cedar PROPERTIES COMPILE_DEFINITIONS "USE_CEDAR")
 add_executable(bench_cedarpp bench.cpp)
 set_target_properties(bench_cedarpp PROPERTIES COMPILE_DEFINITIONS "USE_CEDARPP")
 
+add_executable(bench_dastrie bench.cpp)
+set_target_properties(bench_dastrie PROPERTIES COMPILE_DEFINITIONS "USE_DASTRIE")
+
 set(XCDAT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/xcdat)
 include_directories(${XCDAT_SOURCE_DIR}/include)
 add_executable(bench_xcdat_7 bench.cpp)
@@ -54,3 +57,8 @@ add_subdirectory(${PDT_SOURCE_DIR}/repair)
 add_executable(bench_pdt bench.cpp)
 target_link_libraries(bench_pdt succinct ${Boost_LIBRARIES})
 set_target_properties(bench_pdt PROPERTIES COMPILE_DEFINITIONS "USE_PDT")
+
+set(HATTRIE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/hat-trie)
+include_directories(${HATTRIE_SOURCE_DIR}/include)
+add_executable(bench_hattrie bench.cpp)
+set_target_properties(bench_hattrie PROPERTIES COMPILE_DEFINITIONS "USE_HATTRIE")

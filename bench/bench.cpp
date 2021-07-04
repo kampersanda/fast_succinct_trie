@@ -13,7 +13,7 @@ static constexpr int SEARCH_RUNS = 10;
 static constexpr uint64_t NOT_FOUND = UINT64_MAX;
 static const char* TMP_INDEX_FILENAME = "tmp.bin";
 
-std::vector<std::string> load_strings(const std::string& filepath) {
+std::vector<std::string> load_strings(const std::string& filepath, bool to_unique) {
     std::ifstream ifs(filepath);
     if (!ifs) {
         tfm::errorfln("Failed to open %s", filepath);
@@ -22,6 +22,10 @@ std::vector<std::string> load_strings(const std::string& filepath) {
     std::vector<std::string> strings;
     for (std::string line; std::getline(ifs, line);) {
         strings.push_back(line);
+    }
+    if (to_unique) {
+        std::sort(strings.begin(), strings.end());
+        strings.erase(std::unique(strings.begin(), strings.end()), strings.end());
     }
     return strings;
 }
@@ -70,7 +74,9 @@ uint64_t decode(trie_t* trie, uint64_t query) {
 }
 template <>
 uint64_t get_memory(trie_t* trie) {
-    return trie->getSizeIO();
+    std::ofstream ofs(TMP_INDEX_FILENAME);
+    trie->save(ofs);
+    return essentials::file_size(TMP_INDEX_FILENAME);
 }
 #endif
 
@@ -100,7 +106,8 @@ uint64_t decode(trie_t* trie, uint64_t query) {
 }
 template <>
 uint64_t get_memory(trie_t* trie) {
-    return trie->total_size();
+    trie->save(TMP_INDEX_FILENAME);
+    return essentials::file_size(TMP_INDEX_FILENAME);
 }
 #endif
 
@@ -136,18 +143,102 @@ uint64_t get_memory(trie_t* trie) {
 }
 #endif
 
+#ifdef USE_DASTRIE
+#include "dastrie/dastrie.h"
+using trie_t = dastrie::trie<uint32_t>;
+template <>
+std::unique_ptr<trie_t> build(std::vector<std::string>& keys) {
+    using builder_t = dastrie::builder<const char*, uint32_t>;
+    using record_t = builder_t::record_type;
+
+    std::vector<record_t> records(keys.size());
+    for (uint32_t i = 0; i < keys.size(); ++i) {
+        records[i] = record_t{keys[i].c_str(), i};
+    }
+
+    builder_t builder;
+    builder.build(records.data(), records.data() + records.size());
+
+    {
+        std::ofstream ofs(TMP_INDEX_FILENAME, std::ios::binary);
+        builder.write(ofs);
+    }
+
+    std::ifstream ifs(TMP_INDEX_FILENAME, std::ios::binary);
+    auto trie = std::make_unique<trie_t>();
+    trie->read(ifs);
+    return trie;
+}
+template <>
+uint64_t lookup(trie_t* trie, const std::string& query) {
+    auto res = trie->get(query.c_str(), UINT32_MAX);
+    return res != UINT32_MAX ? uint64_t(res) : NOT_FOUND;
+}
+template <>
+uint64_t decode(trie_t* trie, uint64_t query) {
+    return 0;
+}
+template <>
+uint64_t get_memory(trie_t* trie) {
+    return essentials::file_size(TMP_INDEX_FILENAME);
+}
+#endif
+#ifdef USE_HATTRIE
+#include <tsl/htrie_map.h>
+using trie_t = tsl::htrie_map<char, uint32_t>;
+class serializer {
+  public:
+    serializer(const char* file_name) {
+        m_ostream.exceptions(m_ostream.badbit | m_ostream.failbit);
+        m_ostream.open(file_name);
+    }
+    template <class T, typename std::enable_if<std::is_arithmetic<T>::value>::type* = nullptr>
+    void operator()(const T& value) {
+        m_ostream.write(reinterpret_cast<const char*>(&value), sizeof(T));
+    }
+    void operator()(const char* value, std::size_t value_size) {
+        m_ostream.write(value, value_size);
+    }
+
+  private:
+    std::ofstream m_ostream;
+};
+template <>
+std::unique_ptr<trie_t> build(std::vector<std::string>& keys) {
+    auto trie = std::make_unique<trie_t>();
+    for (std::size_t i = 0; i < keys.size(); ++i) {
+        trie->insert(keys[i].c_str(), uint32_t(i));
+    }
+    return trie;
+}
+template <>
+uint64_t lookup(trie_t* trie, const std::string& query) {
+    auto it = trie->find(query.c_str());
+    return it != trie->end() ? *it : NOT_FOUND;
+}
+template <>
+uint64_t decode(trie_t* trie, uint64_t query) {
+    return 0;
+}
+template <>
+uint64_t get_memory(trie_t* trie) {
+    serializer serial(TMP_INDEX_FILENAME);
+    trie->serialize(serial);
+    return essentials::file_size(TMP_INDEX_FILENAME);
+}
+#endif
+
 #ifdef USE_TX
 #include <tx.hpp>
 using trie_t = tx_tool::tx;
-static const char* TX_INDEX = "tx.idx";
 template <>
 std::unique_ptr<trie_t> build(std::vector<std::string>& keys) {
     {
         trie_t trie;
-        trie.build(keys, TX_INDEX);
+        trie.build(keys, TMP_INDEX_FILENAME);
     }
     auto trie = std::make_unique<trie_t>();
-    trie->read(TX_INDEX);
+    trie->read(TMP_INDEX_FILENAME);
     return trie;
 }
 template <>
@@ -164,8 +255,7 @@ uint64_t decode(trie_t* trie, uint64_t query) {
 }
 template <>
 uint64_t get_memory(trie_t*) {
-    std::ifstream is(TX_INDEX, std::ios::binary | std::ios::ate);
-    return uint64_t(is.tellg());
+    return essentials::file_size(TMP_INDEX_FILENAME);
 }
 #endif
 
@@ -197,7 +287,8 @@ uint64_t decode(trie_t* trie, uint64_t query) {
 }
 template <>
 uint64_t get_memory(trie_t* trie) {
-    return trie->io_size();
+    trie->save(TMP_INDEX_FILENAME);
+    return essentials::file_size(TMP_INDEX_FILENAME);
 }
 #endif
 
@@ -236,7 +327,8 @@ uint64_t decode(trie_t* trie, uint64_t query) {
 }
 template <>
 uint64_t get_memory(trie_t* trie) {
-    return xcdat::memory_in_bytes(*trie);
+    xcdat::save(*trie, TMP_INDEX_FILENAME);
+    return essentials::file_size(TMP_INDEX_FILENAME);
 }
 #endif
 
@@ -261,7 +353,8 @@ uint64_t decode(trie_t* trie, uint64_t query) {
 }
 template <>
 uint64_t get_memory(trie_t* trie) {
-    return succinct::mapper::size_of(*trie);
+    succinct::mapper::freeze(*trie, TMP_INDEX_FILENAME);
+    return essentials::file_size(TMP_INDEX_FILENAME);
 }
 #endif
 
@@ -326,8 +419,9 @@ void main_template(const char* title, std::vector<std::string>& keys, std::vecto
 cmd_line_parser::parser make_parser(int argc, char** argv) {
     cmd_line_parser::parser p(argc, argv);
     p.add("input_keys", "Input filepath of keywords");
-    p.add("num_samples", "Number of sample keys for searches (default=1000)", "-n", false);
+    p.add("num_samples", "Number of sample keys for searches (default=100000)", "-n", false);
     p.add("random_seed", "Random seed for sampling (default=13)", "-s", false);
+    p.add("to_unique", "Unique strings? (default=true)", "-u", false);
     return p;
 }
 
@@ -343,10 +437,11 @@ int main(int argc, char* argv[]) {
     }
 
     const auto input_keys = p.get<std::string>("input_keys");
-    const auto num_samples = p.get<std::uint64_t>("num_samples", 1000);
+    const auto num_samples = p.get<std::uint64_t>("num_samples", 100000);
     const auto random_seed = p.get<std::uint64_t>("random_seed", 13);
+    const auto to_unique = p.get<bool>("to_unique", true);
 
-    auto keys = load_strings(input_keys);
+    auto keys = load_strings(input_keys, to_unique);
     auto queries = sample_strings(keys, num_samples, random_seed);
 
 #ifdef USE_FST
@@ -361,9 +456,14 @@ int main(int argc, char* argv[]) {
 #ifdef USE_CEDARPP
     main_template<trie_t>("CEDARPP", keys, queries, false);
 #endif
+#ifdef USE_DASTRIE
+    main_template<trie_t>("DASTRIE", keys, queries, false);
+#endif
+#ifdef USE_HATTRIE
+    main_template<trie_t>("HATTRIE", keys, queries, false);
+#endif
 #ifdef USE_TX
     main_template<trie_t>("TX", keys, queries, true);
-    std::remove(TX_INDEX);
 #endif
 #ifdef USE_MARISA
     main_template<trie_t>("MARISA", keys, queries, true);
@@ -383,6 +483,7 @@ int main(int argc, char* argv[]) {
 #ifdef USE_PDT
     main_template<trie_t>("PDT", keys, queries, true);
 #endif
+    std::remove(TMP_INDEX_FILENAME);
 
     return 0;
 }
