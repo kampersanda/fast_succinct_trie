@@ -7,8 +7,8 @@ if (NOT CMAKE_BUILD_TYPE)
 endif ()
 
 set(GCC_WARNINGS "-Wall")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -pthread ${GCC_WARNINGS}")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native -DNDEBUG -O3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pthread ${GCC_WARNINGS}")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNDEBUG -march=native -DNDEBUG -O3")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address -fno-omit-frame-pointer -O0 -g -DDEBUG")
 
 message(STATUS "BUILD_TYPE is ${CMAKE_BUILD_TYPE}")
