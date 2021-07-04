@@ -80,9 +80,15 @@ uint64_t get_memory(trie_t* trie) {
 }
 #endif
 
+#ifdef USE_DARTS
+#include "darts/darts.h"
+using trie_t = Darts::DoubleArray;
+#endif
 #ifdef USE_DARTSC
-#include <darts.h>
-using trie_t = Darts::DoubleArrayImpl<void, void, uint32_t, void>;
+#include "darts-clone/darts.h"
+using trie_t = Darts::DoubleArrayImpl<void, void, int32_t, void>;
+#endif
+#if defined(USE_DARTS) || defined(USE_DARTSC)
 template <>
 std::unique_ptr<trie_t> build(std::vector<std::string>& key_strs) {
     std::size_t num_keys = key_strs.size();
@@ -97,7 +103,7 @@ std::unique_ptr<trie_t> build(std::vector<std::string>& key_strs) {
 }
 template <>
 uint64_t lookup(trie_t* trie, const std::string& query) {
-    auto res = trie->exactMatchSearch<uint32_t>(query.c_str(), query.length());
+    auto res = trie->exactMatchSearch<int32_t>(query.c_str(), query.length());
     return res != -1 ? uint64_t(res) : NOT_FOUND;
 }
 template <>
@@ -446,6 +452,9 @@ int main(int argc, char* argv[]) {
 
 #ifdef USE_FST
     main_template<trie_t>("FST", keys, queries, false);
+#endif
+#ifdef USE_DARTS
+    main_template<trie_t>("DARTS", keys, queries, false);
 #endif
 #ifdef USE_DARTSC
     main_template<trie_t>("DARTSC", keys, queries, false);

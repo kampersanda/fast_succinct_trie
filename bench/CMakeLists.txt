@@ -21,8 +21,9 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../include)
 add_executable(bench_fst bench.cpp)
 set_target_properties(bench_fst PROPERTIES COMPILE_DEFINITIONS "USE_FST")
 
-set(DARTSC_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/darts-clone)
-include_directories(${DARTSC_SOURCE_DIR}/include)
+add_executable(bench_darts bench.cpp)
+set_target_properties(bench_darts PROPERTIES COMPILE_DEFINITIONS "USE_DARTS")
+
 add_executable(bench_dartsc bench.cpp)
 set_target_properties(bench_dartsc PROPERTIES COMPILE_DEFINITIONS "USE_DARTSC")
 
