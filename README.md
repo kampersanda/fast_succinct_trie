@@ -1,7 +1,5 @@
 # fast\_succinct\_trie
 
-[![experimental](http://badges.github.io/stability-badges/dist/experimental.svg)](http://github.com/badges/stability-badges)
-
 This library provides a string map through Fast Succinct Trie (FST), proposed in [SIGMOD 2018](http://www.cs.cmu.edu/~huanche1/publications/surf_paper.pdf). The library is implemented by modifying the original FST implementation [efficient/SuRF](https://github.com/efficient/SuRF) and applying a compact minimal-prefix trie form to simulate a trie-based string map (c.f. Section 2.2 of [KAIS 2017](https://drive.google.com/open?id=1_BknOv1misIK-iUk4u9c9yZi3qmWNruf)).
 
 ## What is FST?
