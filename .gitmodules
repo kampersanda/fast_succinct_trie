@@ -13,3 +13,6 @@
 [submodule "bench/path_decomposed_tries"]
 	path = bench/path_decomposed_tries
 	url = https://github.com/ot/path_decomposed_tries.git
+[submodule "bench/hat-trie"]
+	path = bench/hat-trie
+	url = https://github.com/Tessil/hat-trie.git
