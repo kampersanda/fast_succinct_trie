@@ -12,6 +12,7 @@ BUILD_DIR = './build'
 COMMANDS = [
     'bench_cedar',
     'bench_cedarpp',
+    'bench_darts',
     'bench_dartsc',
     'bench_dastrie',
     'bench_hattrie',

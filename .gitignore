@@ -37,4 +37,4 @@ build*/
 *.sublime-project
 *.sublime-workspace
 log-*
-lookup_vs_memory.png
+*.png

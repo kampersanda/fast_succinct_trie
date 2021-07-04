@@ -15,14 +15,15 @@ PROPS = {
     'XCDAT_16': {'label': 'xcdat<16>', 'marker': '^', 'ls': 'None', 'color': CNAMES['red'], 'mfc': 'None'},
     'XCDAT_15': {'label': 'xcdat<15>', 'marker': 'v', 'ls': 'None', 'color': CNAMES['red'], 'mfc': 'None'},
 
+    'DARTS': {'label': 'darts', 'marker': 's', 'ls': 'None', 'color': CNAMES['deepskyblue']},
+    'DARTSC': {'label': 'darts-clone', 'marker': 's', 'ls': 'None', 'color': CNAMES['deepskyblue'], 'mfc': 'None'},
     'CEDAR': {'label': 'cedar', 'marker': 'o', 'ls': 'None', 'color': CNAMES['blue']},
     'CEDARPP': {'label': 'cedarpp', 'marker': 'o', 'ls': 'None', 'color': CNAMES['blue'], 'mfc': 'None'},
-    'DARTSC': {'label': 'darts-clone', 'marker': 's', 'ls': 'None', 'color': CNAMES['skyblue']},
-    'DASTRIE': {'label': 'dastrie', 'marker': 's', 'ls': 'None', 'color': CNAMES['darkorange'], 'mfc': 'None'},
+    'DASTRIE': {'label': 'dastrie', 'marker': '*', 'ls': 'None', 'color': CNAMES['darkorange']},
 
-    'TX': {'label': 'tx', 'marker': 'o', 'ls': 'None', 'color': CNAMES['red'], 'mfc': 'None'},
+    'TX': {'label': 'tx', 'marker': 'p', 'ls': 'None', 'color': CNAMES['green']},
+    'FST': {'label': 'fst', 'marker': 'p', 'ls': 'None', 'color': CNAMES['green'], 'mfc': 'None'},
     'MARISA': {'label': 'marisa', 'marker': 'D', 'ls': 'None', 'color': CNAMES['yellow']},
-    'FST': {'label': 'fst', 'marker': 'D', 'ls': 'None', 'color': CNAMES['green'], 'mfc': 'None'},
     'PDT': {'label': 'pdt', 'marker': 'x', 'ls': 'None', 'color': CNAMES['purple'], 'mfc': 'None'},
 
     'HATTRIE': {'label': 'hat-trie', 'marker': '+', 'ls': 'None', 'color': CNAMES['dimgrey'], 'mfc': 'None'},
@@ -37,7 +38,30 @@ def load_logs(input_path):
     return logs_dict
 
 
-def plot_lookup_vs_memory(logs_dict):
+def plot_constr_vs_memory(logs_dict, title):
+    # fig, ax = plt.subplots(figsize=(4.5, 3.5))
+    fig, ax = plt.subplots()
+    for name, prop in PROPS.items():
+        if not name in logs_dict:
+            continue
+        log_dict = logs_dict[name]
+        x = int(log_dict['memory_in_bytes']) / MiB
+        y = float(log_dict['construction_sec'])
+        ax.plot(x, y, **prop)
+    ax.legend()
+    ax.set_xlabel('Memory usage (MiB)')
+    ax.set_ylabel('Construction time (sec)')
+    xmin, xmax = ax.get_xlim()
+    ax.set_xlim(0, xmax)
+    ymin, ymax = ax.get_ylim()
+    ax.set_ylim(0, ymax)
+    ax.set_title(title)
+    fig.tight_layout()
+    fig.savefig('constr_vs_memory.png')
+    plt.close(fig)
+
+
+def plot_lookup_vs_memory(logs_dict, title):
     # fig, ax = plt.subplots(figsize=(4.5, 3.5))
     fig, ax = plt.subplots()
     for name, prop in PROPS.items():
@@ -47,25 +71,56 @@ def plot_lookup_vs_memory(logs_dict):
         x = int(log_dict['memory_in_bytes']) / MiB
         y = float(log_dict['lookup_us_per_query'])
         ax.plot(x, y, **prop)
-    ax.legend(loc='upper right')
+    ax.legend()
+    # ax.legend(loc='upper right')
     ax.set_xlabel('Memory usage (MiB)')
     ax.set_ylabel('Lookup time (microsec/query)')
     xmin, xmax = ax.get_xlim()
     ax.set_xlim(0, xmax)
     ymin, ymax = ax.get_ylim()
     ax.set_ylim(0, ymax)
+    ax.set_title(title)
     fig.tight_layout()
     fig.savefig('lookup_vs_memory.png')
+    plt.close(fig)
+
+
+def plot_decode_vs_memory(logs_dict, title):
+    # fig, ax = plt.subplots(figsize=(4.5, 3.5))
+    fig, ax = plt.subplots()
+    for name, prop in PROPS.items():
+        if not name in logs_dict:
+            continue
+        log_dict = logs_dict[name]
+        if not 'decode_us_per_query' in log_dict:
+            continue
+        x = int(log_dict['memory_in_bytes']) / MiB
+        y = float(log_dict['decode_us_per_query'])
+        ax.plot(x, y, **prop)
+    ax.legend()
+    # ax.legend(loc='upper left')
+    ax.set_xlabel('Memory usage (MiB)')
+    ax.set_ylabel('Decode time (microsec/query)')
+    xmin, xmax = ax.get_xlim()
+    ax.set_xlim(0, xmax)
+    ymin, ymax = ax.get_ylim()
+    ax.set_ylim(0, ymax)
+    ax.set_title(title)
+    fig.tight_layout()
+    fig.savefig('decode_vs_memory.png')
     plt.close(fig)
 
 
 def main():
     parser = ArgumentParser()
     parser.add_argument('input_path')
+    parser.add_argument('title')
     args = parser.parse_args()
 
     logs_dict = load_logs(args.input_path)
-    plot_lookup_vs_memory(logs_dict)
+    plot_lookup_vs_memory(logs_dict, args.title)
+    plot_decode_vs_memory(logs_dict, args.title)
+    plot_constr_vs_memory(logs_dict, args.title)
 
 
 if __name__ == "__main__":
