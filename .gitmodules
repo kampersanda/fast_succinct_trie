@@ -13,3 +13,6 @@
 [submodule "bench/hat-trie"]
 	path = bench/hat-trie
 	url = https://github.com/Tessil/hat-trie.git
+[submodule "bench/array-hash"]
+	path = bench/array-hash
+	url = https://github.com/Tessil/array-hash.git
