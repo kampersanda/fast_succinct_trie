@@ -83,3 +83,8 @@ set(HATTRIE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/hat-trie)
 include_directories(${HATTRIE_SOURCE_DIR}/include)
 add_executable(bench_hattrie bench.cpp)
 set_target_properties(bench_hattrie PROPERTIES COMPILE_DEFINITIONS "USE_HATTRIE")
+
+set(ARRAYHASH_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/array-hash)
+include_directories(${ARRAYHASH_SOURCE_DIR}/include)
+add_executable(bench_arrayhash bench.cpp)
+set_target_properties(bench_arrayhash PROPERTIES COMPILE_DEFINITIONS "USE_ARRAYHASH")

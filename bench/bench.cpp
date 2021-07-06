@@ -185,50 +185,6 @@ uint64_t get_memory(trie_t* trie) {
     return essentials::file_size(TMP_INDEX_FILENAME);
 }
 #endif
-#ifdef USE_HATTRIE
-#include <tsl/htrie_map.h>
-using trie_t = tsl::htrie_map<char, uint32_t>;
-class serializer {
-  public:
-    serializer(const char* file_name) {
-        m_ostream.exceptions(m_ostream.badbit | m_ostream.failbit);
-        m_ostream.open(file_name);
-    }
-    template <class T, typename std::enable_if<std::is_arithmetic<T>::value>::type* = nullptr>
-    void operator()(const T& value) {
-        m_ostream.write(reinterpret_cast<const char*>(&value), sizeof(T));
-    }
-    void operator()(const char* value, std::size_t value_size) {
-        m_ostream.write(value, value_size);
-    }
-
-  private:
-    std::ofstream m_ostream;
-};
-template <>
-std::unique_ptr<trie_t> build(std::vector<std::string>& keys) {
-    auto trie = std::make_unique<trie_t>();
-    for (std::size_t i = 0; i < keys.size(); ++i) {
-        trie->insert(keys[i].c_str(), uint32_t(i));
-    }
-    return trie;
-}
-template <>
-uint64_t lookup(trie_t* trie, const std::string& query) {
-    auto it = trie->find(query.c_str());
-    return it != trie->end() ? *it : NOT_FOUND;
-}
-template <>
-uint64_t decode(trie_t* trie, uint64_t query) {
-    return 0;
-}
-template <>
-uint64_t get_memory(trie_t* trie) {
-    serializer serial(TMP_INDEX_FILENAME);
-    trie->serialize(serial);
-    return essentials::file_size(TMP_INDEX_FILENAME);
-}
-#endif
 
 #ifdef USE_TX
 #include <tx.hpp>
@@ -360,6 +316,58 @@ uint64_t get_memory(trie_t* trie) {
 }
 #endif
 
+#ifdef USE_HATTRIE
+#include <tsl/htrie_map.h>
+using trie_t = tsl::htrie_map<char, uint32_t>;
+#endif
+#ifdef USE_ARRAYHASH
+#include <tsl/array_map.h>
+using trie_t = tsl::array_map<char, uint32_t>;  // although this is not trie...
+#endif
+
+#if defined(USE_HATTRIE) || defined(USE_ARRAYHASH)
+class serializer {
+  public:
+    serializer(const char* file_name) {
+        m_ostream.exceptions(m_ostream.badbit | m_ostream.failbit);
+        m_ostream.open(file_name);
+    }
+    template <class T, typename std::enable_if<std::is_arithmetic<T>::value>::type* = nullptr>
+    void operator()(const T& value) {
+        m_ostream.write(reinterpret_cast<const char*>(&value), sizeof(T));
+    }
+    void operator()(const char* value, std::size_t value_size) {
+        m_ostream.write(value, value_size);
+    }
+
+  private:
+    std::ofstream m_ostream;
+};
+template <>
+std::unique_ptr<trie_t> build(std::vector<std::string>& keys) {
+    auto trie = std::make_unique<trie_t>();
+    for (std::size_t i = 0; i < keys.size(); ++i) {
+        trie->insert(keys[i].c_str(), uint32_t(i));
+    }
+    return trie;
+}
+template <>
+uint64_t lookup(trie_t* trie, const std::string& query) {
+    auto it = trie->find(query.c_str());
+    return it != trie->end() ? *it : NOT_FOUND;
+}
+template <>
+uint64_t decode(trie_t* trie, uint64_t query) {
+    return 0;
+}
+template <>
+uint64_t get_memory(trie_t* trie) {
+    serializer serial(TMP_INDEX_FILENAME);
+    trie->serialize(serial);
+    return essentials::file_size(TMP_INDEX_FILENAME);
+}
+#endif
+
 template <class T>
 void main_template(const char* title, std::vector<std::string>& keys, std::vector<std::string>& queries,
                    bool run_decode) {
@@ -368,15 +376,15 @@ void main_template(const char* title, std::vector<std::string>& keys, std::vecto
 
     std::unique_ptr<T> trie;
     {
-        essentials::timer<essentials::clock_type, std::chrono::milliseconds> tm;
+        essentials::timer<essentials::clock_type, std::chrono::nanoseconds> tm;
         tm.start();
         trie = build<T>(keys);
         tm.stop();
-        logger.add("construction_sec", tm.average() / 1000.0);
+        logger.add("build_ns_per_key", tm.average() / keys.size());
     }
 
     {
-        essentials::timer<essentials::clock_type, std::chrono::microseconds> tm;
+        essentials::timer<essentials::clock_type, std::chrono::nanoseconds> tm;
         for (int i = 0; i <= SEARCH_RUNS; ++i) {
             tm.start();
             for (const auto& query : queries) {
@@ -388,7 +396,8 @@ void main_template(const char* title, std::vector<std::string>& keys, std::vecto
             tm.stop();
         }
         tm.discard_first();  // for warming up
-        logger.add("lookup_us_per_query", tm.average() / queries.size());
+        logger.add("lookup_ns_per_query", tm.average() / queries.size());
+        logger.add("best_lookup_ns_per_query", tm.min() / queries.size());
     }
 
     if (run_decode) {
@@ -397,7 +406,7 @@ void main_template(const char* title, std::vector<std::string>& keys, std::vecto
             ids[i] = lookup(trie.get(), queries[i]);
         }
 
-        essentials::timer<essentials::clock_type, std::chrono::microseconds> tm;
+        essentials::timer<essentials::clock_type, std::chrono::nanoseconds> tm;
         for (int i = 0; i <= SEARCH_RUNS; ++i) {
             tm.start();
             for (const auto id : ids) {
@@ -409,7 +418,8 @@ void main_template(const char* title, std::vector<std::string>& keys, std::vecto
             tm.stop();
         }
         tm.discard_first();  // for warming up
-        logger.add("decode_us_per_query", tm.average() / ids.size());
+        logger.add("decode_ns_per_query", tm.average() / ids.size());
+        logger.add("best_decode_ns_per_query", tm.min() / ids.size());
     }
 
     const uint64_t mem = get_memory(trie.get());
@@ -464,9 +474,6 @@ int main(int argc, char* argv[]) {
 #ifdef USE_DASTRIE
     main_template<trie_t>("DASTRIE", keys, queries, false);
 #endif
-#ifdef USE_HATTRIE
-    main_template<trie_t>("HATTRIE", keys, queries, false);
-#endif
 #ifdef USE_TX
     main_template<trie_t>("TX", keys, queries, true);
 #endif
@@ -488,6 +495,13 @@ int main(int argc, char* argv[]) {
 #ifdef USE_PDT
     main_template<trie_t>("PDT", keys, queries, true);
 #endif
+#ifdef USE_HATTRIE
+    main_template<trie_t>("HATTRIE", keys, queries, false);
+#endif
+#ifdef USE_ARRAYHASH
+    main_template<trie_t>("ARRAYHASH", keys, queries, false);
+#endif
+
     std::remove(TMP_INDEX_FILENAME);
 
     return 0;
