@@ -37,4 +37,6 @@ build*/
 *.sublime-project
 *.sublime-workspace
 log-*
+logs*/
 *.png
+run.sh

@@ -38,12 +38,13 @@ def run_command(cmd):
 def main():
     parser = ArgumentParser()
     parser.add_argument('input_keys')
+    parser.add_argument('output_json')
     args = parser.parse_args()
 
-    now = datetime.now().strftime('%Y%m%d%H%M%S')
     input_keys = args.input_keys
+    output_json = args.output_json
 
-    fout = open(f'log-{now}.json', 'wt')
+    fout = open(f'{output_json}.json', 'wt')
     for command in COMMANDS:
         cmd = f'{BUILD_DIR}/{command} {input_keys}'
         stdout = run_command(cmd)
