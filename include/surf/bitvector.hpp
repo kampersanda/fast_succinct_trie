@@ -81,11 +81,11 @@ class Bitvector {
     // Added by Shunsuke Kanda
     void save(std::ostream& os) const {
         saveValue(os, num_bits_);
-        saveArray(os, bits_, bitsSize());
+        saveArray(os, bits_, numWords());
     }
     void load(std::istream& is) {
         loadValue(is, num_bits_);
-        loadArray(is, bits_, bitsSize());
+        loadArray(is, bits_, numWords());
     }
 
   protected:
