@@ -46,11 +46,11 @@ def plot_constr_vs_memory(logs_dict, title):
             continue
         log_dict = logs_dict[name]
         x = int(log_dict['memory_in_bytes']) / MiB
-        y = float(log_dict['construction_sec'])
+        y = float(log_dict['build_ns_per_key'])
         ax.plot(x, y, **prop)
-    ax.legend()
+    # ax.legend()
     ax.set_xlabel('Memory usage (MiB)')
-    ax.set_ylabel('Construction time (sec)')
+    ax.set_ylabel('Build time (ns/key)')
     xmin, xmax = ax.get_xlim()
     ax.set_xlim(0, xmax)
     ymin, ymax = ax.get_ylim()
@@ -71,12 +71,12 @@ def plot_lookup_vs_memory(logs_dict, title):
             continue
         log_dict = logs_dict[name]
         x = int(log_dict['memory_in_bytes']) / MiB
-        y = float(log_dict['lookup_us_per_query'])
+        y = float(log_dict['best_lookup_ns_per_query'])
         ax.plot(x, y, **prop)
     ax.legend()
     # ax.legend(loc='upper right')
     ax.set_xlabel('Memory usage (MiB)')
-    ax.set_ylabel('Lookup time (microsec/query)')
+    ax.set_ylabel('Lookup time (ns/key)')
     xmin, xmax = ax.get_xlim()
     ax.set_xlim(0, xmax)
     ymin, ymax = ax.get_ylim()
@@ -96,15 +96,15 @@ def plot_decode_vs_memory(logs_dict, title):
         if not name in logs_dict:
             continue
         log_dict = logs_dict[name]
-        if not 'decode_us_per_query' in log_dict:
+        if not 'best_decode_ns_per_query' in log_dict:
             continue
         x = int(log_dict['memory_in_bytes']) / MiB
-        y = float(log_dict['decode_us_per_query'])
+        y = float(log_dict['best_decode_ns_per_query'])
         ax.plot(x, y, **prop)
     ax.legend()
     # ax.legend(loc='upper left')
     ax.set_xlabel('Memory usage (MiB)')
-    ax.set_ylabel('Decode time (microsec/query)')
+    ax.set_ylabel('Decode time (ns/id)')
     xmin, xmax = ax.get_xlim()
     ax.set_xlim(0, xmax)
     ymin, ymax = ax.get_ylim()

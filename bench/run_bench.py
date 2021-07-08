@@ -16,6 +16,7 @@ COMMANDS = [
     'bench_dartsc',
     'bench_dastrie',
     'bench_hattrie',
+    'bench_arrayhash',
     'bench_tx',
     'bench_marisa',
     'bench_fst',
