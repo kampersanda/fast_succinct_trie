@@ -19,14 +19,15 @@ PROPS = {
     'DARTSC': {'label': 'darts-clone', 'marker': 's', 'ls': 'None', 'color': CNAMES['deepskyblue'], 'mfc': 'None'},
     'CEDAR': {'label': 'cedar', 'marker': 'o', 'ls': 'None', 'color': CNAMES['blue']},
     'CEDARPP': {'label': 'cedarpp', 'marker': 'o', 'ls': 'None', 'color': CNAMES['blue'], 'mfc': 'None'},
-    'DASTRIE': {'label': 'dastrie', 'marker': '*', 'ls': 'None', 'color': CNAMES['darkorange']},
+    'DASTRIE': {'label': 'dastrie', 'marker': '*', 'ls': 'None', 'color': CNAMES['green']},
 
-    'TX': {'label': 'tx', 'marker': 'p', 'ls': 'None', 'color': CNAMES['green']},
-    'FST': {'label': 'fst', 'marker': 'p', 'ls': 'None', 'color': CNAMES['green'], 'mfc': 'None'},
+    'TX': {'label': 'tx', 'marker': 'p', 'ls': 'None', 'color': CNAMES['darkorange']},
     'MARISA': {'label': 'marisa', 'marker': 'D', 'ls': 'None', 'color': CNAMES['yellow']},
-    'PDT': {'label': 'pdt', 'marker': 'x', 'ls': 'None', 'color': CNAMES['purple'], 'mfc': 'None'},
+    'FST': {'label': 'fst', 'marker': '1', 'ls': 'None', 'color': CNAMES['hotpink'], 'mfc': 'None'},
+    'PDT': {'label': 'pdt', 'marker': '2', 'ls': 'None', 'color': CNAMES['purple'], 'mfc': 'None'},
 
     'HATTRIE': {'label': 'hat-trie', 'marker': '+', 'ls': 'None', 'color': CNAMES['dimgrey'], 'mfc': 'None'},
+    'ARRAYHASH': {'label': 'array-hash', 'marker': 'x', 'ls': 'None', 'color': CNAMES['dimgrey'], 'mfc': 'None'},
 }
 
 
