@@ -1,6 +1,6 @@
 # fast\_succinct\_trie
 
-This library provides a string map through Fast Succinct Trie (FST), proposed in [SIGMOD 2018](http://www.cs.cmu.edu/~huanche1/publications/surf_paper.pdf). The library is implemented by modifying the original FST implementation [efficient/SuRF](https://github.com/efficient/SuRF) and applying a compact minimal-prefix trie form to simulate a trie-based string map (c.f. Section 2.2 of [KAIS 2017](https://drive.google.com/open?id=1_BknOv1misIK-iUk4u9c9yZi3qmWNruf)).
+This library provides a string map through Fast Succinct Trie (FST), proposed in [SIGMOD 2018](http://www.cs.cmu.edu/~huanche1/publications/surf_paper.pdf). The library is implemented by modifying the original FST implementation [efficient/SuRF](https://github.com/efficient/SuRF) and applying a compact minimal-prefix trie form to simulate a trie-based string map (c.f. Section 2.2 of [KAIS 2017](https://kampersanda.github.io/pdf/KAIS2017.pdf)).
 
 ## What is FST?
 
@@ -10,7 +10,7 @@ FST is a succinct trie data structure proposed in the paper,
 
 Briefly, FST is a practical variant of [LOUDS-trie](https://bitbucket.org/vsmirnov/memoria/wiki/LabeledTree). FST uses two LOUDS implementations: one is fast and the other is space-efficient. FST partitions a trie into two layers at a level and applies the fast one to the top layer and the space-efficient one to the bottom layer. More specific explanations can be found in the [slide](http://www.cs.cmu.edu/~huanche1/slides/FST.pdf) by the author.
 
-Since FST was developed for succinct range query filtering, the original implementation [efficient/SuRF](https://github.com/efficient/SuRF) allows us to include false positives in query solutions. The library [kampersanda/fast\_succinct\_trie](https://github.com/kampersanda/fast_succinct_trie) modifies it and provides a string map based on FST.
+Since FST was developed for succinct range query filtering, [the original implementation](https://github.com/efficient/SuRF) allows us to include false positives in query solutions. [This library](https://github.com/kampersanda/fast_succinct_trie) modifies it and provides a string map based on FST.
 
 ## Install
 
@@ -20,12 +20,13 @@ This library consists of only header files. Please through the path to the direc
 
 You can download and compile this library as the following commands:
 
-```
+```sh
 $ git clone https://github.com/kampersanda/fast_succinct_trie.git
 $ cd fast_succinct_trie
-$ mkdir build && cd build
+$ mkdir build
+$ cd build
 $ cmake ..
-$ make
+$ make -j
 ```
 
 ## Sample usage
