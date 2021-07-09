@@ -501,7 +501,6 @@ int main(int argc, char* argv[]) {
 #ifdef USE_ARRAYHASH
     main_template<trie_t>("ARRAYHASH", keys, queries, false);
 #endif
-
     std::remove(TMP_INDEX_FILENAME);
 
     return 0;

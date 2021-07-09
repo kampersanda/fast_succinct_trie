@@ -44,7 +44,7 @@ def main():
     input_keys = args.input_keys
     output_json = args.output_json
 
-    fout = open(f'{output_json}.json', 'wt')
+    fout = open(output_json, 'wt')
     for command in COMMANDS:
         cmd = f'{BUILD_DIR}/{command} {input_keys}'
         stdout = run_command(cmd)
