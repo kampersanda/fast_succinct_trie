@@ -18,11 +18,12 @@ PROPS = {
     'DASTRIE': {'label': 'dastrie'},
 
     'TX': {'label': 'tx'},
-    'FST': {'label': 'fst'},
     'MARISA': {'label': 'marisa'},
+    'FST': {'label': 'fst'},
     'PDT': {'label': 'pdt'},
 
     'HATTRIE': {'label': 'hat-trie'},
+    'ARRAYHASH': {'label': 'array-hash'},
 }
 
 
@@ -54,7 +55,7 @@ def main():
             decode = float(log_dict['best_decode_ns_per_query'])
         else:
             decode = 0.0
-        print(label, memory, lookup, decode, constr, sep='\t')
+        print(label, memory, constr, lookup, decode, sep='\t')
 
 
 if __name__ == "__main__":
